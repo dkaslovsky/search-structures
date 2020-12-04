@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/dkaslovsky/search-structures/bst"
 )
@@ -18,5 +19,23 @@ func main() {
 		),
 	)
 
-	fmt.Println("validate =", b.Validate())
+	iter := b.Iterator()
+	for {
+		node, err := iter()
+		if err == bst.ErrIteratorStop {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(node)
+	}
+
+	valid, err := b.Validate()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("validate =", valid)
+
 }

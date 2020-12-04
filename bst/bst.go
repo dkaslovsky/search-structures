@@ -7,10 +7,11 @@ import (
 	"github.com/dkaslovsky/search-structures/queue"
 )
 
-// Errors returned from bst package
+// Errors returned from a BST
 var (
-	ErrKeyNotFound error = errors.New("key not found in BST")
-	ErrDeleteRoot  error = errors.New("cannot delete root node of BST")
+	ErrKeyNotFound  error = errors.New("key not found in BST")
+	ErrDeleteRoot   error = errors.New("cannot delete root node of BST")
+	ErrIteratorStop error = errors.New("iterator is empty")
 )
 
 // BST is a node of a binary search tree indexed by Key containing value Val
@@ -29,11 +30,6 @@ func NewBST(key int64, val string, left *BST, right *BST) *BST {
 		Left:  left,
 		Right: right,
 	}
-}
-
-// NewBSTRoot constructs a root node of a BST with both children set to nil
-func NewBSTRoot(key int64, val string) *BST {
-	return NewBST(key, val, nil, nil)
 }
 
 // Insert inserts a key/value pair
@@ -121,15 +117,15 @@ func (b *BST) Search(key int64) (val string, found bool) {
 }
 
 // Validate determines if a BST satisfies the BST property
-func (b *BST) Validate() bool {
-	type node struct {
+func (b *BST) Validate() (bool, error) {
+	type validationNode struct {
 		*BST
 		minKey int64
 		maxKey int64
 	}
 
 	q := queue.NewQueue()
-	q.Push(&node{
+	q.Push(&validationNode{
 		BST:    b,
 		minKey: math.MinInt64,
 		maxKey: math.MaxInt64,
@@ -138,28 +134,57 @@ func (b *BST) Validate() bool {
 	for {
 		item, err := q.Pop()
 		if err == queue.ErrEmptyQueue {
-			return true
+			return true, nil
 		}
-		curNode, _ := item.(*node)
+		curNode, ok := item.(*validationNode)
+		if !ok {
+			return false, errors.New("reached node of unknown type while traversing tree")
+		}
 		if curNode.BST == nil {
 			continue
 		}
 		if (curNode.Key < curNode.minKey) || (curNode.Key > curNode.maxKey) {
-			return false
+			return false, nil
 		}
 
-		left := &node{
+		left := &validationNode{
 			BST:    curNode.Left,
 			minKey: curNode.minKey,
 			maxKey: curNode.Key - 1,
 		}
-		right := &node{
+		right := &validationNode{
 			BST:    curNode.Right,
 			minKey: curNode.Key + 1,
 			maxKey: curNode.maxKey,
 		}
 		q.Push(left)
 		q.Push(right)
+	}
+}
+
+// Iterator creates a function to iterate the nodes of the BST by returning the next (breadth-first) node on each call
+func (b *BST) Iterator() func() (*BST, error) {
+	q := queue.NewQueue()
+	q.Push(b)
+	return func() (*BST, error) {
+		item, err := q.Pop()
+		if err == queue.ErrEmptyQueue {
+			return nil, ErrIteratorStop
+		}
+		curB, ok := item.(*BST)
+		if !ok {
+			return nil, errors.New("reached node of unknown type while traversing tree")
+		}
+		if curB == nil {
+			return curB, nil
+		}
+		if curB.Left != nil {
+			q.Push(curB.Left)
+		}
+		if curB.Right != nil {
+			q.Push(curB.Right)
+		}
+		return curB, nil
 	}
 }
 
