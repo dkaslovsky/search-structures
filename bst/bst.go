@@ -3,15 +3,16 @@ package bst
 import (
 	"errors"
 	"math"
+	"math/rand"
 
 	"github.com/dkaslovsky/search-structures/queue"
 )
 
 // Errors returned from a BST
 var (
-	ErrKeyNotFound  error = errors.New("key not found in BST")
-	ErrDeleteRoot   error = errors.New("cannot delete root node of BST")
-	ErrIteratorStop error = errors.New("iterator is empty")
+	ErrKeyNotFound    error = errors.New("key not found in BST")
+	ErrDeleteRootLeaf error = errors.New("cannot delete node that is both a leaf and root of BST")
+	ErrIteratorStop   error = errors.New("iterator is empty")
 )
 
 // BST is a node of a binary search tree indexed by Key containing value Val
@@ -66,9 +67,9 @@ func (b *BST) Delete(key int64) error {
 
 	// target is a leaf node
 	if target.Left == nil && target.Right == nil {
-		// cannot delete if target is also root node
+		// cannot delete if target is both a root and leaf node
 		if parent == nil {
-			return ErrDeleteRoot
+			return ErrDeleteRootLeaf
 		}
 		parent.replaceChild(target, nil)
 		target = nil
@@ -89,21 +90,14 @@ func (b *BST) Delete(key int64) error {
 		return nil
 	}
 
-	// target has both left and right children, delete by overwriting with leftmost (min) value from
-	// right branch (or rightmost (max) value from left branch)
-	left, leftParent := target.Right.findLeftMost()
-	// parent will be nil when leftmost is the starting node (target.Right) so set parent to target
-	if leftParent == nil {
-		leftParent = target
+	// target has both left and right children:
+	// delete by overwriting with leftmost (min) value from right branch or rightmost (max) value
+	// from left branch; choose at random to avoid creating an unbalanced tree
+	if rand.Float64() > 0.5 {
+		deleteOnLeft(target)
+	} else {
+		deleteOnRight(target)
 	}
-	// overwrite target's key/value with left's key/value
-	target.Key = left.Key
-	target.Val = left.Val
-	// if left has a child it must be a right-child, so set leftParent.Left to be the child
-	if left.Right != nil {
-		leftParent.Left = left.Right
-	}
-	left = nil
 	return nil
 }
 
@@ -219,6 +213,46 @@ func (b *BST) replaceChild(child *BST, newChild *BST) {
 	b.Right = newChild
 }
 
+func deleteOnLeft(target *BST) {
+	left, parent := target.Right.findLeftMost()
+
+	// overwrite target's key/value with left's key/value
+	target.Key = left.Key
+	target.Val = left.Val
+
+	if parent != nil {
+		// if left has a child it must be on the right and less than parent, so
+		// it becomes parent's child on the left
+		parent.Left = left.Right
+		left = nil
+		return
+	}
+
+	// left and target.Right are the same, set both to nil
+	target.Right = nil
+	left = nil
+}
+
+func deleteOnRight(target *BST) {
+	right, parent := target.Left.findRightMost()
+
+	// overwrite target's key/value with left's key/value
+	target.Key = right.Key
+	target.Val = right.Val
+
+	if parent != nil {
+		// if right has a child it must be on the left and greater than parent, so
+		// it becomes parent's child on the right
+		parent.Right = right.Left
+		right = nil
+		return
+	}
+
+	// right and target.Left are the same, set both to nil
+	target.Left = nil
+	right = nil
+}
+
 func (b *BST) findLeftMost() (left *BST, parent *BST) {
 	left, parent = b, nil
 	for {
@@ -227,5 +261,16 @@ func (b *BST) findLeftMost() (left *BST, parent *BST) {
 		}
 		parent = left
 		left = left.Left
+	}
+}
+
+func (b *BST) findRightMost() (right *BST, parent *BST) {
+	right, parent = b, nil
+	for {
+		if right.Right == nil {
+			return right, parent
+		}
+		parent = right
+		right = right.Right
 	}
 }
