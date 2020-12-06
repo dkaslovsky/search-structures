@@ -8,29 +8,20 @@ import (
 )
 
 func main() {
-	// b := bst.NewBST(20, "val20",
-	// 	bst.NewBST(10, "val10",
-	// 		nil,
-	// 		bst.NewBST(15, "val15", nil, nil),
-	// 	),
-	// 	bst.NewBST(30, "val30",
-	// 		bst.NewBST(25, "val25", nil, nil),
-	// 		bst.NewBST(40, "val40", nil, nil),
-	// 	),
-	// )
-
-	b := bst.NewBST(20, "val20",
-		bst.NewBST(10, "val10",
-			nil,
-			bst.NewBST(15, "val15", nil, nil),
-		),
-		bst.NewBST(30, "val30",
-			bst.NewBST(25, "val25", nil, nil),
-			bst.NewBST(40, "val40",
-				bst.NewBST(32, "val32", nil,
-					bst.NewBST(34, "val34", nil, nil),
+	b := bst.NewBst(
+		bst.NewBstNode(20, "val20",
+			bst.NewBstNode(10, "val10",
+				nil,
+				bst.NewBstNode(15, "val15", nil, nil),
+			),
+			bst.NewBstNode(30, "val30",
+				bst.NewBstNode(25, "val25", nil, nil),
+				bst.NewBstNode(40, "val40",
+					bst.NewBstNode(32, "val32", nil,
+						bst.NewBstNode(34, "val34", nil, nil),
+					),
+					bst.NewBstNode(42, "val42", nil, nil),
 				),
-				bst.NewBST(42, "val42", nil, nil),
 			),
 		),
 	)
