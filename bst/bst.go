@@ -2,8 +2,10 @@ package bst
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"math/rand"
+	"time"
 
 	"github.com/dkaslovsky/search-structures/queue"
 )
@@ -21,6 +23,8 @@ type BST struct {
 	Val   string
 	Left  *BST
 	Right *BST
+
+	r *rand.Rand
 }
 
 // NewBST constructs a BST
@@ -30,6 +34,8 @@ func NewBST(key int64, val string, left *BST, right *BST) *BST {
 		Val:   val,
 		Left:  left,
 		Right: right,
+
+		r: rand.New(rand.NewSource(time.Now().UTC().UnixNano())),
 	}
 }
 
@@ -60,45 +66,14 @@ func (b *BST) Insert(key int64, val string) {
 
 // Delete deletes a key/value pair
 func (b *BST) Delete(key int64) error {
-	target, parent, found := b.search(key)
-	if !found {
-		return ErrKeyNotFound
+	// when the node-to-be-deleted has both left and right children, choose side to use for deleting
+	// at random to avoid creating an unbalanced tree
+	deleteSide := leftSide
+	if b.r.Float64() > 0.5 {
+		deleteSide = rightSide
 	}
 
-	// target is a leaf node
-	if target.Left == nil && target.Right == nil {
-		// cannot delete if target is both a root and leaf node
-		if parent == nil {
-			return ErrDeleteRootLeaf
-		}
-		parent.replaceChild(target, nil)
-		target = nil
-		return nil
-	}
-
-	// target has only a right child
-	if target.Left == nil {
-		parent.replaceChild(target, target.Right)
-		target = nil
-		return nil
-	}
-
-	// target has only a left child
-	if target.Right == nil {
-		parent.replaceChild(target, target.Left)
-		target = nil
-		return nil
-	}
-
-	// target has both left and right children:
-	// delete by overwriting with leftmost (min) value from right branch or rightmost (max) value
-	// from left branch; choose at random to avoid creating an unbalanced tree
-	if rand.Float64() > 0.5 {
-		deleteOnLeft(target)
-	} else {
-		deleteOnRight(target)
-	}
-	return nil
+	return b.delete(key, deleteSide)
 }
 
 // Search searches a BST for a key
@@ -182,6 +157,53 @@ func (b *BST) Iterator() func() (*BST, error) {
 	}
 }
 
+// Equal evaluates if two BSTs are equal
+func (b *BST) Equal(other *BST) bool {
+	q1 := queue.NewQueue()
+	q1.Push(b)
+
+	q2 := queue.NewQueue()
+	q2.Push(other)
+
+	for {
+		item1, errItem1 := q1.Pop()
+		item2, errItem2 := q2.Pop()
+		if errItem1 == queue.ErrEmptyQueue && errItem2 == queue.ErrEmptyQueue {
+			return true
+		}
+
+		b1, ok := item1.(*BST)
+		if !ok {
+			return false
+		}
+		b2, ok := item2.(*BST)
+		if !ok {
+			return false
+		}
+
+		if b1.Key != b2.Key || b1.Val != b2.Val {
+			return false
+		}
+
+		if b1 == nil {
+			continue
+		}
+
+		if b1.Left != nil {
+			q1.Push(b1.Left)
+		}
+		if b1.Right != nil {
+			q1.Push(b1.Right)
+		}
+		if b2.Left != nil {
+			q2.Push(b2.Left)
+		}
+		if b2.Right != nil {
+			q2.Push(b2.Right)
+		}
+	}
+}
+
 // search searches for a key and returns the node, the parent node, and success bool
 func (b *BST) search(key int64) (target *BST, parent *BST, found bool) {
 	curTree := b
@@ -203,6 +225,52 @@ func (b *BST) search(key int64) (target *BST, parent *BST, found bool) {
 		parent = curTree
 		curTree = curTree.Right
 	}
+}
+
+func (b *BST) delete(key int64, deleteSide side) error {
+	target, parent, found := b.search(key)
+	if !found {
+		return ErrKeyNotFound
+	}
+
+	// target is a leaf node
+	if target.Left == nil && target.Right == nil {
+		// cannot delete if target is both a root and leaf node
+		if parent == nil {
+			return ErrDeleteRootLeaf
+		}
+		parent.replaceChild(target, nil)
+		target = nil
+		return nil
+	}
+
+	// target has only a right child
+	if target.Left == nil {
+		parent.replaceChild(target, target.Right)
+		target = nil
+		return nil
+	}
+
+	// target has only a left child
+	if target.Right == nil {
+		parent.replaceChild(target, target.Left)
+		target = nil
+		return nil
+	}
+
+	// target has both left and right children:
+	// delete by overwriting with leftmost (min) value from right branch or rightmost (max) value
+	// from left branch
+	switch deleteSide {
+	case leftSide:
+		deleteOnLeft(target)
+	case rightSide:
+		deleteOnRight(target)
+	default:
+		return fmt.Errorf("deleteSide must be one of [%v, %v], received [%v]", leftSide, rightSide, deleteSide)
+	}
+
+	return nil
 }
 
 func (b *BST) replaceChild(child *BST, newChild *BST) {
@@ -274,3 +342,10 @@ func (b *BST) findRightMost() (right *BST, parent *BST) {
 		right = right.Right
 	}
 }
+
+type side uint
+
+const (
+	leftSide side = iota
+	rightSide
+)
