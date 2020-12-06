@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"time"
 
 	"github.com/dkaslovsky/search-structures/queue"
 )
@@ -23,8 +22,6 @@ type BST struct {
 	Val   string
 	Left  *BST
 	Right *BST
-
-	r *rand.Rand
 }
 
 // NewBST constructs a BST
@@ -34,8 +31,6 @@ func NewBST(key int64, val string, left *BST, right *BST) *BST {
 		Val:   val,
 		Left:  left,
 		Right: right,
-
-		r: rand.New(rand.NewSource(time.Now().UTC().UnixNano())),
 	}
 }
 
@@ -69,7 +64,7 @@ func (b *BST) Delete(key int64) error {
 	// when the node-to-be-deleted has both left and right children, choose side to use for deleting
 	// at random to avoid creating an unbalanced tree
 	deleteSide := leftSide
-	if b.r.Float64() > 0.5 {
+	if rand.Float64() > 0.5 {
 		deleteSide = rightSide
 	}
 
@@ -154,53 +149,6 @@ func (b *BST) Iterator() func() (*BST, error) {
 			q.Push(curB.Right)
 		}
 		return curB, nil
-	}
-}
-
-// Equal evaluates if two BSTs are equal
-func (b *BST) Equal(other *BST) bool {
-	q1 := queue.NewQueue()
-	q1.Push(b)
-
-	q2 := queue.NewQueue()
-	q2.Push(other)
-
-	for {
-		item1, errItem1 := q1.Pop()
-		item2, errItem2 := q2.Pop()
-		if errItem1 == queue.ErrEmptyQueue && errItem2 == queue.ErrEmptyQueue {
-			return true
-		}
-
-		b1, ok := item1.(*BST)
-		if !ok {
-			return false
-		}
-		b2, ok := item2.(*BST)
-		if !ok {
-			return false
-		}
-
-		if b1.Key != b2.Key || b1.Val != b2.Val {
-			return false
-		}
-
-		if b1 == nil {
-			continue
-		}
-
-		if b1.Left != nil {
-			q1.Push(b1.Left)
-		}
-		if b1.Right != nil {
-			q1.Push(b1.Right)
-		}
-		if b2.Left != nil {
-			q2.Push(b2.Left)
-		}
-		if b2.Right != nil {
-			q2.Push(b2.Right)
-		}
 	}
 }
 
