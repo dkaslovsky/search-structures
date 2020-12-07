@@ -18,29 +18,31 @@ var (
 	ErrIteratorStop   error = errors.New("iterator stopped after iterating all nodes")
 )
 
+// Bst is a binary search tree
 type Bst struct {
-	Tree *BstNode
+	Tree *Node
 	r    *rand.Rand
 }
 
-func NewBst(tree *BstNode) *Bst {
+// NewBst constructs a Bst
+func NewBst(tree *Node) *Bst {
 	return &Bst{
 		Tree: tree,
 		r:    rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
-// BstNode is a node of a binary search tree indexed by Key containing value Val
-type BstNode struct {
+// Node is a node of a binary search tree indexed by Key containing value Val
+type Node struct {
 	Key   int64
 	Val   string
-	Left  *BstNode
-	Right *BstNode
+	Left  *Node
+	Right *Node
 }
 
-// NewBstNode constructs a BstNode
-func NewBstNode(key int64, val string, left *BstNode, right *BstNode) *BstNode {
-	return &BstNode{
+// NewNode constructs a node
+func NewNode(key int64, val string, left *Node, right *Node) *Node {
+	return &Node{
 		Key:   key,
 		Val:   val,
 		Left:  left,
@@ -56,7 +58,7 @@ func (b *Bst) IsEmpty() bool {
 // Insert inserts a key/value pair
 func (b *Bst) Insert(key int64, val string) {
 	if b.IsEmpty() {
-		b.Tree = NewBstNode(key, val, nil, nil)
+		b.Tree = NewNode(key, val, nil, nil)
 		return
 	}
 
@@ -69,14 +71,14 @@ func (b *Bst) Insert(key int64, val string) {
 		}
 		if key < curTree.Key {
 			if curTree.Left == nil {
-				curTree.Left = NewBstNode(key, val, nil, nil)
+				curTree.Left = NewNode(key, val, nil, nil)
 				return
 			}
 			curTree = curTree.Left
 			continue
 		}
 		if curTree.Right == nil {
-			curTree.Right = NewBstNode(key, val, nil, nil)
+			curTree.Right = NewNode(key, val, nil, nil)
 			return
 		}
 		curTree = curTree.Right
@@ -119,16 +121,16 @@ func (b *Bst) Validate() (bool, error) {
 	}
 
 	type validationNode struct {
-		*BstNode
+		*Node
 		minKey int64
 		maxKey int64
 	}
 
 	q := queue.NewQueue()
 	q.Push(&validationNode{
-		BstNode: b.Tree,
-		minKey:  math.MinInt64,
-		maxKey:  math.MaxInt64,
+		Node:   b.Tree,
+		minKey: math.MinInt64,
+		maxKey: math.MaxInt64,
 	})
 
 	for {
@@ -140,7 +142,7 @@ func (b *Bst) Validate() (bool, error) {
 		if !ok {
 			return false, errors.New("reached node of unknown type while traversing tree")
 		}
-		if curNode.BstNode == nil {
+		if curNode.Node == nil {
 			continue
 		}
 		if (curNode.Key < curNode.minKey) || (curNode.Key > curNode.maxKey) {
@@ -148,14 +150,14 @@ func (b *Bst) Validate() (bool, error) {
 		}
 
 		left := &validationNode{
-			BstNode: curNode.Left,
-			minKey:  curNode.minKey,
-			maxKey:  curNode.Key - 1,
+			Node:   curNode.Left,
+			minKey: curNode.minKey,
+			maxKey: curNode.Key - 1,
 		}
 		right := &validationNode{
-			BstNode: curNode.Right,
-			minKey:  curNode.Key + 1,
-			maxKey:  curNode.maxKey,
+			Node:   curNode.Right,
+			minKey: curNode.Key + 1,
+			maxKey: curNode.maxKey,
 		}
 		q.Push(left)
 		q.Push(right)
@@ -163,21 +165,21 @@ func (b *Bst) Validate() (bool, error) {
 }
 
 // Iterator creates a function to iterate the nodes of the Bst by returning the next (breadth-first) node on each call
-func (b *Bst) Iterator() func() (*BstNode, error) {
+func (b *Bst) Iterator() func() (*Node, error) {
 	if b.IsEmpty() {
-		return func() (*BstNode, error) {
+		return func() (*Node, error) {
 			return nil, ErrIteratorStop
 		}
 	}
 
 	q := queue.NewQueue()
 	q.Push(b.Tree)
-	return func() (*BstNode, error) {
+	return func() (*Node, error) {
 		item, err := q.Pop()
 		if err == queue.ErrEmptyQueue {
 			return nil, ErrIteratorStop
 		}
-		curB, ok := item.(*BstNode)
+		curB, ok := item.(*Node)
 		if !ok {
 			return nil, errors.New("reached node of unknown type while traversing tree")
 		}
@@ -195,7 +197,7 @@ func (b *Bst) Iterator() func() (*BstNode, error) {
 }
 
 // search searches for a key and returns the node, the parent node, and success bool
-func (b *Bst) search(key int64) (target *BstNode, parent *BstNode, found bool) {
+func (b *Bst) search(key int64) (target *Node, parent *Node, found bool) {
 	curTree := b.Tree
 	for {
 		if key == curTree.Key {
@@ -263,15 +265,15 @@ func (b *Bst) delete(key int64, deleteSide side) error {
 	return nil
 }
 
-func (b *BstNode) replaceChild(child *BstNode, newChild *BstNode) {
-	if child.Key < b.Key {
-		b.Left = newChild
+func (n *Node) replaceChild(child *Node, newChild *Node) {
+	if child.Key < n.Key {
+		n.Left = newChild
 		return
 	}
-	b.Right = newChild
+	n.Right = newChild
 }
 
-func deleteOnLeft(target *BstNode) {
+func deleteOnLeft(target *Node) {
 	left, parent := target.Right.findLeftMost()
 
 	// overwrite target's key/value with left's key/value
@@ -291,7 +293,7 @@ func deleteOnLeft(target *BstNode) {
 	left = nil
 }
 
-func deleteOnRight(target *BstNode) {
+func deleteOnRight(target *Node) {
 	right, parent := target.Left.findRightMost()
 
 	// overwrite target's key/value with left's key/value
@@ -311,8 +313,8 @@ func deleteOnRight(target *BstNode) {
 	right = nil
 }
 
-func (b *BstNode) findLeftMost() (left *BstNode, parent *BstNode) {
-	left, parent = b, nil
+func (n *Node) findLeftMost() (left *Node, parent *Node) {
+	left, parent = n, nil
 	for {
 		if left.Left == nil {
 			return left, parent
@@ -322,8 +324,8 @@ func (b *BstNode) findLeftMost() (left *BstNode, parent *BstNode) {
 	}
 }
 
-func (b *BstNode) findRightMost() (right *BstNode, parent *BstNode) {
-	right, parent = b, nil
+func (n *Node) findRightMost() (right *Node, parent *Node) {
+	right, parent = n, nil
 	for {
 		if right.Right == nil {
 			return right, parent
