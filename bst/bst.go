@@ -98,7 +98,7 @@ func (b *Bst) Delete(key int64) error {
 		deleteSide = rightSide
 	}
 
-	return b.delete(key, deleteSide)
+	return b.deleteBySide(key, deleteSide)
 }
 
 // Search searches a Bst for a key
@@ -219,7 +219,7 @@ func (b *Bst) search(key int64) (target *Node, parent *Node, found bool) {
 	}
 }
 
-func (b *Bst) delete(key int64, deleteSide side) error {
+func (b *Bst) deleteBySide(key int64, deleteSide side) error {
 	target, parent, found := b.search(key)
 	if !found {
 		return ErrKeyNotFound
@@ -274,26 +274,6 @@ func (n *Node) replaceChild(child *Node, newChild *Node) {
 }
 
 func deleteOnLeft(target *Node) {
-	left, parent := target.Right.findLeftMost()
-
-	// overwrite target's key/value with left's key/value
-	target.Key = left.Key
-	target.Val = left.Val
-
-	if parent != nil {
-		// if left has a child it must be on the right and less than parent, so
-		// it becomes parent's child on the left
-		parent.Left = left.Right
-		left = nil
-		return
-	}
-
-	// left and target.Right are the same, set both to nil
-	target.Right = nil
-	left = nil
-}
-
-func deleteOnRight(target *Node) {
 	right, parent := target.Left.findRightMost()
 
 	// overwrite target's key/value with left's key/value
@@ -311,6 +291,26 @@ func deleteOnRight(target *Node) {
 	// right and target.Left are the same, set both to nil
 	target.Left = nil
 	right = nil
+}
+
+func deleteOnRight(target *Node) {
+	left, parent := target.Right.findLeftMost()
+
+	// overwrite target's key/value with left's key/value
+	target.Key = left.Key
+	target.Val = left.Val
+
+	if parent != nil {
+		// if left has a child it must be on the right and less than parent, so
+		// it becomes parent's child on the left
+		parent.Left = left.Right
+		left = nil
+		return
+	}
+
+	// left and target.Right are the same, set both to nil
+	target.Right = nil
+	left = nil
 }
 
 func (n *Node) findLeftMost() (left *Node, parent *Node) {

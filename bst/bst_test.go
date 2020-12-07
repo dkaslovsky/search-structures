@@ -382,7 +382,7 @@ func TestInsert(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			test.tree.Insert(test.insertKey, test.insertVal)
-			assertnodeEqual(t, test.tree, test.expectedTree)
+			assertBstEqual(t, test.tree, test.expectedTree)
 		})
 	}
 }
@@ -467,6 +467,233 @@ func TestSearch(t *testing.T) {
 				return
 			}
 			a.Equal(test.expectedValue, val)
+		})
+	}
+}
+
+func TestDelete(t *testing.T) {
+	// Delete() calls deleteBySide() in all cases except for an empty tree
+	t.Run("empty tree", func(t *testing.T) {
+		tree := NewBst(nil)
+		err := tree.Delete(1)
+		assert.Equal(t, ErrEmpty, err)
+	})
+}
+
+func TestDeleteBySide(t *testing.T) {
+	tests := map[string]struct {
+		tree         *Bst
+		side         side
+		deleteKey    int64
+		expectedTree *Bst
+		expectedErr  error
+	}{
+		"single node tree": {
+			tree:        NewBst(NewNode(10, "val10", nil, nil)),
+			deleteKey:   10,
+			expectedErr: ErrDeleteRootLeaf,
+		},
+		"multi node tree without deleteKey": {
+			tree: NewBst(
+				NewNode(10, "val10",
+					NewNode(8, "val8", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			deleteKey:   1,
+			expectedErr: ErrKeyNotFound,
+		},
+		"multi node tree with deleteKey on left": {
+			tree: NewBst(
+				NewNode(10, "val10",
+					NewNode(8, "val8", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			deleteKey: 8,
+			expectedTree: NewBst(
+				NewNode(10, "val10",
+					nil,
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			expectedErr: nil,
+		},
+		"multi node tree with deleteKey on right": {
+			tree: NewBst(
+				NewNode(10, "val10",
+					NewNode(8, "val8", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			deleteKey: 12,
+			expectedTree: NewBst(
+				NewNode(10, "val10",
+					NewNode(8, "val8", nil, nil),
+					nil,
+				),
+			),
+			expectedErr: nil,
+		},
+		"leftSide delete on multi node tree with parent deleteKey": {
+			tree: NewBst(
+				NewNode(10, "val10",
+					NewNode(8, "val8", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			side:      leftSide,
+			deleteKey: 10,
+			expectedTree: NewBst(
+				NewNode(8, "val8",
+					nil,
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			expectedErr: nil,
+		},
+		"rightSide delete on multi node tree with parent deleteKey": {
+			tree: NewBst(
+				NewNode(10, "val10",
+					NewNode(8, "val8", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			side:      rightSide,
+			deleteKey: 10,
+			expectedTree: NewBst(
+				NewNode(12, "val12",
+					NewNode(8, "val8", nil, nil),
+					nil,
+				),
+			),
+			expectedErr: nil,
+		},
+		"leftSide delete on deep multi node tree": {
+			tree: NewBst(
+				NewNode(20, "val20",
+					NewNode(10, "val10",
+						nil,
+						NewNode(15, "val15", nil, nil),
+					),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40",
+							NewNode(32, "val32", nil,
+								NewNode(34, "val34", nil, nil),
+							),
+							NewNode(42, "val42", nil, nil),
+						),
+					),
+				),
+			),
+			side:      leftSide,
+			deleteKey: 30,
+			expectedTree: NewBst(
+				NewNode(20, "val20",
+					NewNode(10, "val10",
+						nil,
+						NewNode(15, "val15", nil, nil),
+					),
+					NewNode(25, "val25",
+						nil,
+						NewNode(40, "val40",
+							NewNode(32, "val32", nil,
+								NewNode(34, "val34", nil, nil),
+							),
+							NewNode(42, "val42", nil, nil),
+						),
+					),
+				),
+			),
+			expectedErr: nil,
+		},
+		"rightSide delete on deep multi node tree": {
+			tree: NewBst(
+				NewNode(20, "val20",
+					NewNode(10, "val10",
+						nil,
+						NewNode(15, "val15", nil, nil),
+					),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40",
+							NewNode(32, "val32", nil,
+								NewNode(34, "val34", nil, nil),
+							),
+							NewNode(42, "val42", nil, nil),
+						),
+					),
+				),
+			),
+			side:      rightSide,
+			deleteKey: 30,
+			expectedTree: NewBst(
+				NewNode(20, "val20",
+					NewNode(10, "val10",
+						nil,
+						NewNode(15, "val15", nil, nil),
+					),
+					NewNode(32, "val32",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40",
+							NewNode(34, "val34", nil, nil),
+							NewNode(42, "val42", nil, nil),
+						),
+					),
+				),
+			),
+			expectedErr: nil,
+		},
+		"deep multi node tree with leaf deleteKey": {
+			tree: NewBst(
+				NewNode(20, "val20",
+					NewNode(10, "val10",
+						nil,
+						NewNode(15, "val15", nil, nil),
+					),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40",
+							NewNode(32, "val32", nil,
+								NewNode(34, "val34", nil, nil),
+							),
+							NewNode(42, "val42", nil, nil),
+						),
+					),
+				),
+			),
+			deleteKey: 42,
+			expectedTree: NewBst(
+				NewNode(20, "val20",
+					NewNode(10, "val10",
+						nil,
+						NewNode(15, "val15", nil, nil),
+					),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40",
+							NewNode(32, "val32", nil,
+								NewNode(34, "val34", nil, nil),
+							),
+							nil,
+						),
+					),
+				),
+			),
+			expectedErr: nil,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			a := assert.New(t)
+			err := test.tree.deleteBySide(test.deleteKey, test.side)
+			if err != nil {
+				a.Equal(test.expectedErr, err)
+				return
+			}
+			assertBstEqual(t, test.expectedTree, test.tree)
 		})
 	}
 }
@@ -624,7 +851,7 @@ func TestIterator(t *testing.T) {
 	}
 }
 
-func assertnodeEqual(t *testing.T, bst1 *Bst, bst2 *Bst) {
+func assertBstEqual(t *testing.T, bst1 *Bst, bst2 *Bst) {
 	a := assert.New(t)
 	eq, msg := equal(bst1, bst2)
 	if !eq {
