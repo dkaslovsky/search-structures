@@ -381,8 +381,13 @@ func TestInsert(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
+			a := assert.New(t)
 			test.tree.Insert(test.insertKey, test.insertVal)
 			assertBstEqual(t, test.tree, test.expectedTree)
+
+			valid, err := test.tree.Validate()
+			a.NoError(err)
+			a.True(valid)
 		})
 	}
 }
@@ -694,6 +699,10 @@ func TestDeleteBySide(t *testing.T) {
 				return
 			}
 			assertBstEqual(t, test.expectedTree, test.tree)
+
+			valid, err := test.tree.Validate()
+			a.NoError(err)
+			a.True(valid)
 		})
 	}
 }
