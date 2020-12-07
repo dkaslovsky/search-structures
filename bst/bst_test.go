@@ -35,11 +35,11 @@ func equal(bst1 *Bst, bst2 *Bst) (eq bool, msg string) {
 			return true, ""
 		}
 
-		b1, ok := item1.(*BstNode)
+		b1, ok := item1.(*Node)
 		if !ok {
 			return false, fmt.Sprintf("error casting first argument tree node: %v", b1)
 		}
-		b2, ok := item2.(*BstNode)
+		b2, ok := item2.(*Node)
 		if !ok {
 			return false, fmt.Sprintf("error casting second argument tree node: %v", b2)
 		}
@@ -69,7 +69,6 @@ func equal(bst1 *Bst, bst2 *Bst) (eq bool, msg string) {
 
 // test equal so it can be used in subsequent assertions
 func TestEqual(t *testing.T) {
-
 	tests := map[string]struct {
 		tree1      *Bst
 		tree2      *Bst
@@ -81,102 +80,102 @@ func TestEqual(t *testing.T) {
 			expectedEq: true,
 		},
 		"equal single node trees": {
-			tree1:      NewBst(NewBstNode(10, "val10", nil, nil)),
-			tree2:      NewBst(NewBstNode(10, "val10", nil, nil)),
+			tree1:      NewBst(NewNode(10, "val10", nil, nil)),
+			tree2:      NewBst(NewNode(10, "val10", nil, nil)),
 			expectedEq: true,
 		},
 		"equal multiple node trees": {
 			tree1: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
-						NewBstNode(40, "val40", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40", nil, nil),
 					),
 				),
 			),
 			tree2: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
-						NewBstNode(40, "val40", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40", nil, nil),
 					),
 				),
 			),
 			expectedEq: true,
 		},
 		"unequal single node trees": {
-			tree1:      NewBst(NewBstNode(1, "val1", nil, nil)),
-			tree2:      NewBst(NewBstNode(2, "val2", nil, nil)),
+			tree1:      NewBst(NewNode(1, "val1", nil, nil)),
+			tree2:      NewBst(NewNode(2, "val2", nil, nil)),
 			expectedEq: false,
 		},
 		"unequal single node trees with key mismatch": {
-			tree1:      NewBst(NewBstNode(1, "val1", nil, nil)),
-			tree2:      NewBst(NewBstNode(2, "val1", nil, nil)),
+			tree1:      NewBst(NewNode(1, "val1", nil, nil)),
+			tree2:      NewBst(NewNode(2, "val1", nil, nil)),
 			expectedEq: false,
 		},
 		"unequal single node trees with value mismatch": {
-			tree1:      NewBst(NewBstNode(1, "val1", nil, nil)),
-			tree2:      NewBst(NewBstNode(1, "val2", nil, nil)),
+			tree1:      NewBst(NewNode(1, "val1", nil, nil)),
+			tree2:      NewBst(NewNode(1, "val2", nil, nil)),
 			expectedEq: false,
 		},
 		"unequal trees with one having no children": {
-			tree1: NewBst(NewBstNode(1, "val1", nil, nil)),
+			tree1: NewBst(NewNode(1, "val1", nil, nil)),
 			tree2: NewBst(
-				NewBstNode(1, "val1",
+				NewNode(1, "val1",
 					nil,
-					NewBstNode(2, "val2", nil, nil),
+					NewNode(2, "val2", nil, nil),
 				),
 			),
 			expectedEq: false,
 		},
 		"unequal trees with children key mismatch": {
 			tree1: NewBst(
-				NewBstNode(1, "val1",
+				NewNode(1, "val1",
 					nil,
-					NewBstNode(2, "val2", nil, nil),
+					NewNode(2, "val2", nil, nil),
 				),
 			),
 			tree2: NewBst(
-				NewBstNode(1, "val1",
+				NewNode(1, "val1",
 					nil,
-					NewBstNode(3, "val1", nil, nil),
+					NewNode(3, "val1", nil, nil),
 				),
 			),
 			expectedEq: false,
 		},
 		"unequal trees with children value mismatch": {
 			tree1: NewBst(
-				NewBstNode(1, "val1",
+				NewNode(1, "val1",
 					nil,
-					NewBstNode(2, "val2", nil, nil),
+					NewNode(2, "val2", nil, nil),
 				),
 			),
 			tree2: NewBst(
-				NewBstNode(1, "val1",
+				NewNode(1, "val1",
 					nil,
-					NewBstNode(2, "val3", nil, nil),
+					NewNode(2, "val3", nil, nil),
 				),
 			),
 			expectedEq: false,
 		},
 		"unequal trees with different children structure": {
 			tree1: NewBst(
-				NewBstNode(1, "val1",
+				NewNode(1, "val1",
 					nil,
-					NewBstNode(2, "val2", nil, nil),
+					NewNode(2, "val2", nil, nil),
 				),
 			),
 			tree2: NewBst(
-				NewBstNode(1, "val1",
-					NewBstNode(0, "val0", nil, nil),
+				NewNode(1, "val1",
+					NewNode(0, "val0", nil, nil),
 					nil,
 				),
 			),
@@ -184,25 +183,25 @@ func TestEqual(t *testing.T) {
 		},
 		"unequal trees with deep different children structure": {
 			tree1: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
-						NewBstNode(40, "val40", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40", nil, nil),
 					),
 				),
 			),
 			tree2: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
 						nil,
 					),
 				),
@@ -220,7 +219,6 @@ func TestEqual(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
-
 	tests := map[string]struct {
 		tree         *Bst
 		insertKey    int64
@@ -228,114 +226,114 @@ func TestInsert(t *testing.T) {
 		expectedTree *Bst
 	}{
 		"insert should be on left": {
-			tree:      NewBst(NewBstNode(10, "val10", nil, nil)),
+			tree:      NewBst(NewNode(10, "val10", nil, nil)),
 			insertKey: 9,
 			insertVal: "val9",
 			expectedTree: NewBst(
-				NewBstNode(10, "val10",
-					NewBstNode(9, "val9", nil, nil),
+				NewNode(10, "val10",
+					NewNode(9, "val9", nil, nil),
 					nil,
 				),
 			),
 		},
 		"insert should be on right": {
-			tree:      NewBst(NewBstNode(10, "val10", nil, nil)),
+			tree:      NewBst(NewNode(10, "val10", nil, nil)),
 			insertKey: 11,
 			insertVal: "val11",
 			expectedTree: NewBst(
-				NewBstNode(10, "val10",
+				NewNode(10, "val10",
 					nil,
-					NewBstNode(11, "val11", nil, nil),
+					NewNode(11, "val11", nil, nil),
 				),
 			),
 		},
 		"deep insert to left child of left leaf": {
 			tree: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
-						NewBstNode(40, "val40", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40", nil, nil),
 					),
 				),
 			),
 			insertKey: 24,
 			insertVal: "val24",
 			expectedTree: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25",
-							NewBstNode(24, "val24", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25",
+							NewNode(24, "val24", nil, nil),
 							nil,
 						),
-						NewBstNode(40, "val40", nil, nil),
+						NewNode(40, "val40", nil, nil),
 					),
 				),
 			),
 		},
 		"deep insert to right child of left leaf": {
 			tree: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
-						NewBstNode(40, "val40", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40", nil, nil),
 					),
 				),
 			),
 			insertKey: 26,
 			insertVal: "val26",
 			expectedTree: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25",
+					NewNode(30, "val30",
+						NewNode(25, "val25",
 							nil,
-							NewBstNode(26, "val26", nil, nil),
+							NewNode(26, "val26", nil, nil),
 						),
-						NewBstNode(40, "val40", nil, nil),
+						NewNode(40, "val40", nil, nil),
 					),
 				),
 			),
 		},
 		"deep insert to left child of right leaf": {
 			tree: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
-						NewBstNode(40, "val40", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40", nil, nil),
 					),
 				),
 			),
 			insertKey: 39,
 			insertVal: "val39",
 			expectedTree: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
-						NewBstNode(40, "val40",
-							NewBstNode(39, "val39", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40",
+							NewNode(39, "val39", nil, nil),
 							nil,
 						),
 					),
@@ -344,52 +342,289 @@ func TestInsert(t *testing.T) {
 		},
 		"deep insert to right child of right leaf": {
 			tree: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
-						NewBstNode(40, "val40", nil, nil),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40", nil, nil),
 					),
 				),
 			),
 			insertKey: 41,
 			insertVal: "val41",
 			expectedTree: NewBst(
-				NewBstNode(20, "val20",
-					NewBstNode(10, "val10",
+				NewNode(20, "val20",
+					NewNode(10, "val10",
 						nil,
-						NewBstNode(15, "val15", nil, nil),
+						NewNode(15, "val15", nil, nil),
 					),
-					NewBstNode(30, "val30",
-						NewBstNode(25, "val25", nil, nil),
-						NewBstNode(40, "val40",
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40",
 							nil,
-							NewBstNode(41, "val41", nil, nil),
+							NewNode(41, "val41", nil, nil),
 						),
 					),
 				),
 			),
 		},
 		"insert of existing key overwrites value": {
-			tree:         NewBst(NewBstNode(10, "val10", nil, nil)),
+			tree:         NewBst(NewNode(10, "val10", nil, nil)),
 			insertKey:    10,
 			insertVal:    "newVal10",
-			expectedTree: NewBst(NewBstNode(10, "newVal10", nil, nil)),
+			expectedTree: NewBst(NewNode(10, "newVal10", nil, nil)),
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			test.tree.Insert(test.insertKey, test.insertVal)
-			assertBstNodeEqual(t, test.tree, test.expectedTree)
+			assertnodeEqual(t, test.tree, test.expectedTree)
 		})
 	}
 }
 
-func assertBstNodeEqual(t *testing.T, bst1 *Bst, bst2 *Bst) {
+func TestIsEmpty(t *testing.T) {
+	tests := map[string]struct {
+		tree          *Bst
+		expectedEmpty bool
+	}{
+		"empty tree": {
+			tree:          NewBst(nil),
+			expectedEmpty: true,
+		},
+		"nonempty tree": {
+			tree:          NewBst(NewNode(10, "val10", nil, nil)),
+			expectedEmpty: false,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, test.expectedEmpty, test.tree.IsEmpty())
+		})
+	}
+}
+
+func TestSearch(t *testing.T) {
+	tests := map[string]struct {
+		tree           *Bst
+		searchKey      int64
+		expectedValue  string
+		expectedExists bool
+	}{
+		"empty tree": {
+			tree:           NewBst(nil),
+			searchKey:      1,
+			expectedValue:  "",
+			expectedExists: false,
+		},
+		"single node tree without searchKey": {
+			tree:           NewBst(NewNode(1, "val1", nil, nil)),
+			searchKey:      2,
+			expectedValue:  "",
+			expectedExists: false,
+		},
+		"multi node tree without searchKey": {
+			tree: NewBst(
+				NewNode(10, "val1",
+					NewNode(8, "val8", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			searchKey:      2,
+			expectedValue:  "",
+			expectedExists: false,
+		},
+		"single node tree with searchKey": {
+			tree:           NewBst(NewNode(1, "val1", nil, nil)),
+			searchKey:      1,
+			expectedValue:  "val1",
+			expectedExists: true,
+		},
+		"multi node tree with searchKey": {
+			tree: NewBst(
+				NewNode(10, "val1",
+					NewNode(8, "val8", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			searchKey:      12,
+			expectedValue:  "val12",
+			expectedExists: true,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			a := assert.New(t)
+			val, exists := test.tree.Search(test.searchKey)
+			a.Equal(test.expectedExists, exists)
+			if !test.expectedExists {
+				return
+			}
+			a.Equal(test.expectedValue, val)
+		})
+	}
+}
+
+func TestValidate(t *testing.T) {
+	tests := map[string]struct {
+		tree          *Bst
+		expectedValid bool
+		expectedErr   error
+	}{
+		"empty tree": {
+			tree:          NewBst(nil),
+			expectedValid: false,
+			expectedErr:   ErrEmpty,
+		},
+		"single node tree": {
+			tree:          NewBst(NewNode(10, "val10", nil, nil)),
+			expectedValid: true,
+			expectedErr:   nil,
+		},
+		"multi node valid tree": {
+			tree: NewBst(
+				NewNode(10, "val10",
+					NewNode(8, "val8", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			expectedValid: true,
+			expectedErr:   nil,
+		},
+		"multi node invalid tree": {
+			tree: NewBst(
+				NewNode(10, "val1",
+					NewNode(11, "va11", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			expectedValid: false,
+			expectedErr:   nil,
+		},
+		"deep multi node valid tree": {
+			tree: NewBst(
+				NewNode(20, "val20",
+					NewNode(10, "val10",
+						nil,
+						NewNode(15, "val15", nil, nil),
+					),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40", nil, nil),
+					),
+				),
+			),
+			expectedValid: true,
+			expectedErr:   nil,
+		},
+		"deep multi node invalid tree": {
+			tree: NewBst(
+				NewNode(20, "val20",
+					NewNode(10, "val10",
+						nil,
+						NewNode(15, "val15", nil, nil),
+					),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(24, "val24", nil, nil),
+					),
+				),
+			),
+			expectedValid: false,
+			expectedErr:   nil,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			a := assert.New(t)
+			valid, err := test.tree.Validate()
+			a.Equal(test.expectedValid, valid)
+			a.Equal(test.expectedErr, err)
+		})
+	}
+}
+
+func TestIterator(t *testing.T) {
+	type testNode struct {
+		key int64
+		val string
+	}
+
+	tests := map[string]struct {
+		tree                  *Bst
+		expectedIteratedNodes []testNode
+	}{
+		"empty tree": {
+			tree:                  NewBst(nil),
+			expectedIteratedNodes: []testNode{},
+		},
+		"single node tree": {
+			tree:                  NewBst(NewNode(10, "val10", nil, nil)),
+			expectedIteratedNodes: []testNode{testNode{10, "val10"}},
+		},
+		"multi node tree": {
+			tree: NewBst(
+				NewNode(10, "val10",
+					NewNode(8, "val8", nil, nil),
+					NewNode(12, "val12", nil, nil),
+				),
+			),
+			expectedIteratedNodes: []testNode{
+				testNode{10, "val10"},
+				testNode{8, "val8"},
+				testNode{12, "val12"},
+			},
+		},
+		"deep multi node tree": {
+			tree: NewBst(
+				NewNode(20, "val20",
+					NewNode(10, "val10",
+						nil,
+						NewNode(15, "val15", nil, nil),
+					),
+					NewNode(30, "val30",
+						NewNode(25, "val25", nil, nil),
+						NewNode(40, "val40", nil, nil),
+					),
+				),
+			),
+			expectedIteratedNodes: []testNode{
+				testNode{20, "val20"},
+				testNode{10, "val10"},
+				testNode{30, "val30"},
+				testNode{15, "val15"},
+				testNode{25, "val25"},
+				testNode{40, "val40"},
+			},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			a := assert.New(t)
+			iter := test.tree.Iterator()
+			nodes := []testNode{}
+			for {
+				node, err := iter()
+				if err == ErrIteratorStop {
+					break
+				}
+				a.NoError(err)
+				nodes = append(nodes, testNode{node.Key, node.Val})
+			}
+			a.Equal(test.expectedIteratedNodes, nodes)
+		})
+	}
+}
+
+func assertnodeEqual(t *testing.T, bst1 *Bst, bst2 *Bst) {
 	a := assert.New(t)
 	eq, msg := equal(bst1, bst2)
 	if !eq {
